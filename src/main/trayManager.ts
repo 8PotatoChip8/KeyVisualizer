@@ -1,5 +1,5 @@
 import { Tray, Menu, nativeImage, app } from 'electron';
-import { getOverlayWindow, setEditMode, setChromaKey, isChromaKeyEnabled } from './overlayWindow';
+import { getOverlayWindow, setEditMode, setRecordingMode, isRecordingModeEnabled } from './overlayWindow';
 
 let tray: Tray | null = null;
 
@@ -47,9 +47,9 @@ function updateTrayMenu(): void {
     {
       label: 'Recording Mode (OBS)',
       type: 'checkbox',
-      checked: isChromaKeyEnabled(),
+      checked: isRecordingModeEnabled(),
       click: (menuItem) => {
-        setChromaKey(menuItem.checked);
+        setRecordingMode(menuItem.checked);
       },
     },
     { type: 'separator' },

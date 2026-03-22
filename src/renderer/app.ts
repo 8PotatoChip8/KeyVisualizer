@@ -11,6 +11,11 @@ async function init(): Promise<void> {
   config = await window.electronAPI.getConfig();
   container = document.getElementById('overlay-container')!;
 
+  // Check if this is the chroma key capture window
+  if (window.location.search.includes('chromakey=1')) {
+    document.body.classList.add('chroma-key');
+  }
+
   // Listen for keyboard events
   window.electronAPI.onKeyEvent((event: KeyEvent) => {
     const id = `key:${event.keycode}`;
@@ -41,11 +46,6 @@ async function init(): Promise<void> {
   // Listen for edit mode
   window.electronAPI.onEditModeChanged((enabled: boolean) => {
     document.body.classList.toggle('edit-mode', enabled);
-  });
-
-  // Listen for chroma key (recording mode)
-  window.electronAPI.onChromaKeyChanged((enabled: boolean) => {
-    document.body.classList.toggle('chroma-key', enabled);
   });
 
   // Start render loop

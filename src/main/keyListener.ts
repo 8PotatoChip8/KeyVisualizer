@@ -4,11 +4,24 @@ import { KEYCODE_LABELS, MOUSE_BUTTON_LABELS } from '../shared/constants';
 import { KeyEvent, MouseButtonEvent, MouseWheelEvent } from '../shared/types';
 import { canUseEvdev, startEvdevListener, stopEvdevListener } from './evdevReader';
 
-let targetWindow: BrowserWindow | null = null;
+const targetWindows: BrowserWindow[] = [];
 let usingEvdev = false;
 
+export function addTargetWindow(win: BrowserWindow): void {
+  targetWindows.push(win);
+  win.on('closed', () => {
+    const idx = targetWindows.indexOf(win);
+    if (idx !== -1) targetWindows.splice(idx, 1);
+  });
+}
+
+export function removeTargetWindow(win: BrowserWindow): void {
+  const idx = targetWindows.indexOf(win);
+  if (idx !== -1) targetWindows.splice(idx, 1);
+}
+
 export function startKeyListener(win: BrowserWindow): void {
-  targetWindow = win;
+  addTargetWindow(win);
 
   // On Linux, check if we should use evdev (needed for Wayland)
   if (process.platform === 'linux' && canUseEvdev()) {
@@ -33,7 +46,7 @@ export function stopKeyListener(): void {
       // Ignore errors during shutdown
     }
   }
-  targetWindow = null;
+  targetWindows.length = 0;
 }
 
 function startUiohook(): void {
@@ -63,9 +76,15 @@ function startUiohook(): void {
   uIOhook.start();
 }
 
-function sendKeyEvent(keycode: number, pressed: boolean): void {
-  if (!targetWindow || targetWindow.isDestroyed()) return;
+function broadcast(channel: string, data: unknown): void {
+  for (const win of targetWindows) {
+    if (!win.isDestroyed()) {
+      win.webContents.send(channel, data);
+    }
+  }
+}
 
+function sendKeyEvent(keycode: number, pressed: boolean): void {
   const label = KEYCODE_LABELS[keycode] || `Key${keycode}`;
   const event: KeyEvent = {
     keycode,
@@ -74,13 +93,10 @@ function sendKeyEvent(keycode: number, pressed: boolean): void {
     timestamp: performance.now(),
     wallClock: Date.now(),
   };
-
-  targetWindow.webContents.send('key-event', event);
+  broadcast('key-event', event);
 }
 
 function sendMouseButtonEvent(button: number, pressed: boolean, x: number, y: number): void {
-  if (!targetWindow || targetWindow.isDestroyed()) return;
-
   const label = MOUSE_BUTTON_LABELS[button] || `Mouse${button}`;
   const event: MouseButtonEvent = {
     button,
@@ -91,19 +107,15 @@ function sendMouseButtonEvent(button: number, pressed: boolean, x: number, y: nu
     x,
     y,
   };
-
-  targetWindow.webContents.send('mouse-button', event);
+  broadcast('mouse-button', event);
 }
 
 function sendMouseWheelEvent(direction: 'up' | 'down', amount: number): void {
-  if (!targetWindow || targetWindow.isDestroyed()) return;
-
   const event: MouseWheelEvent = {
     direction,
     amount,
     timestamp: performance.now(),
     wallClock: Date.now(),
   };
-
-  targetWindow.webContents.send('mouse-wheel', event);
+  broadcast('mouse-wheel', event);
 }

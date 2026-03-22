@@ -1,11 +1,13 @@
 import { BrowserWindow, screen } from 'electron';
 import { getConfig, setConfig } from './store';
 import { DEFAULT_CONFIG } from '../shared/constants';
+import { addTargetWindow, removeTargetWindow } from './keyListener';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 let overlayWindow: BrowserWindow | null = null;
+let captureWindow: BrowserWindow | null = null;
 let editPanelWindow: BrowserWindow | null = null;
 let editModeOriginalBounds: { x: number; y: number } | null = null;
 let editModeOriginalScale: number | null = null;
@@ -46,8 +48,18 @@ export function createOverlayWindow(): BrowserWindow {
     overlayWindow.setIgnoreMouseEvents(true, { forward: true });
   }
 
+  // Keep capture window synced when overlay moves
+  overlayWindow.on('move', () => {
+    syncCapturePosition();
+  });
+
+  overlayWindow.on('resize', () => {
+    syncCapturePosition();
+  });
+
   overlayWindow.on('closed', () => {
     overlayWindow = null;
+    destroyCaptureWindow();
   });
 
   return overlayWindow;
@@ -92,7 +104,12 @@ function applyOverlayZoom(): void {
   // Normalize to 1080p: on higher-res screens, scale up proportionally
   const resolutionScale = display.size.height / 1080;
   const userScale = config.scale / 100;
-  overlayWindow.webContents.setZoomFactor(resolutionScale * userScale);
+  const zoom = resolutionScale * userScale;
+  overlayWindow.webContents.setZoomFactor(zoom);
+  // Apply same zoom to capture window
+  if (captureWindow && !captureWindow.isDestroyed()) {
+    captureWindow.webContents.setZoomFactor(zoom);
+  }
 }
 
 export function setOverlayScale(scale: number): void {
@@ -106,17 +123,82 @@ export function setOverlayScale(scale: number): void {
   }
 }
 
-let chromaKeyEnabled = false;
+// --- Recording Mode (companion capture window) ---
 
-export function setChromaKey(enabled: boolean): void {
-  chromaKeyEnabled = enabled;
-  if (!overlayWindow) return;
-  overlayWindow.webContents.send('chroma-key-changed', enabled);
+export function setRecordingMode(enabled: boolean): void {
+  if (enabled) {
+    createCaptureWindow();
+  } else {
+    destroyCaptureWindow();
+  }
 }
 
-export function isChromaKeyEnabled(): boolean {
-  return chromaKeyEnabled;
+export function isRecordingModeEnabled(): boolean {
+  return captureWindow !== null;
 }
+
+function createCaptureWindow(): void {
+  if (captureWindow || !overlayWindow) return;
+
+  const bounds = overlayWindow.getBounds();
+
+  captureWindow = new BrowserWindow({
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
+    transparent: false,
+    frame: false,
+    resizable: false,
+    focusable: false,
+    skipTaskbar: false, // Show in taskbar so OBS can find it
+    alwaysOnTop: false, // Sits behind the transparent overlay
+    backgroundColor: '#00FF00',
+    title: 'KeyVisualizer [Recording]',
+    webPreferences: {
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  });
+
+  // Load same renderer content — chroma key background is set via CSS
+  const url = new URL(MAIN_WINDOW_WEBPACK_ENTRY);
+  url.searchParams.set('chromakey', '1');
+  captureWindow.loadURL(url.toString());
+
+  // Apply same zoom factor
+  captureWindow.webContents.on('did-finish-load', () => {
+    if (captureWindow && overlayWindow) {
+      captureWindow.webContents.setZoomFactor(
+        overlayWindow.webContents.getZoomFactor()
+      );
+    }
+  });
+
+  // Register as a key event target
+  addTargetWindow(captureWindow);
+
+  captureWindow.on('closed', () => {
+    captureWindow = null;
+  });
+}
+
+function destroyCaptureWindow(): void {
+  if (captureWindow) {
+    removeTargetWindow(captureWindow);
+    captureWindow.close();
+    captureWindow = null;
+  }
+}
+
+function syncCapturePosition(): void {
+  if (!captureWindow || !overlayWindow) return;
+  const bounds = overlayWindow.getBounds();
+  captureWindow.setBounds(bounds);
+}
+
+// --- Position presets ---
 
 export function moveToPreset(preset: string): void {
   if (!overlayWindow) return;
@@ -160,6 +242,8 @@ export function moveToPreset(preset: string): void {
 
   overlayWindow.setPosition(x, y);
 }
+
+// --- Edit panel ---
 
 function getEditPanelHTML(currentScale: number): string {
   return `<!DOCTYPE html>
