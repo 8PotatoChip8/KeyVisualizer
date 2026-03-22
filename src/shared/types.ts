@@ -62,6 +62,7 @@ export interface ElectronAPI {
   setConfig: (config: Partial<AppConfig>) => Promise<void>;
   setEditMode: (enabled: boolean) => void;
   onEditModeChanged: (callback: (enabled: boolean) => void) => void;
+  onChromaKeyChanged: (callback: (enabled: boolean) => void) => void;
 }
 
 declare global {

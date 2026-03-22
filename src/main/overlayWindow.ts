@@ -106,6 +106,18 @@ export function setOverlayScale(scale: number): void {
   }
 }
 
+let chromaKeyEnabled = false;
+
+export function setChromaKey(enabled: boolean): void {
+  chromaKeyEnabled = enabled;
+  if (!overlayWindow) return;
+  overlayWindow.webContents.send('chroma-key-changed', enabled);
+}
+
+export function isChromaKeyEnabled(): boolean {
+  return chromaKeyEnabled;
+}
+
 export function moveToPreset(preset: string): void {
   if (!overlayWindow) return;
 

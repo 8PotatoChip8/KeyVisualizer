@@ -1,5 +1,5 @@
 import { Tray, Menu, nativeImage, app } from 'electron';
-import { getOverlayWindow, setEditMode } from './overlayWindow';
+import { getOverlayWindow, setEditMode, setChromaKey, isChromaKeyEnabled } from './overlayWindow';
 
 let tray: Tray | null = null;
 
@@ -42,6 +42,14 @@ function updateTrayMenu(): void {
       label: 'Edit Position',
       click: () => {
         setEditMode(true);
+      },
+    },
+    {
+      label: 'Recording Mode (OBS)',
+      type: 'checkbox',
+      checked: isChromaKeyEnabled(),
+      click: (menuItem) => {
+        setChromaKey(menuItem.checked);
       },
     },
     { type: 'separator' },

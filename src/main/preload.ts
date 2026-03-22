@@ -32,6 +32,12 @@ const api: ElectronAPI = {
       callback(enabled);
     });
   },
+
+  onChromaKeyChanged: (callback: (enabled: boolean) => void) => {
+    ipcRenderer.on('chroma-key-changed', (_event, enabled: boolean) => {
+      callback(enabled);
+    });
+  },
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

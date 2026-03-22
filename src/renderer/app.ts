@@ -43,6 +43,11 @@ async function init(): Promise<void> {
     document.body.classList.toggle('edit-mode', enabled);
   });
 
+  // Listen for chroma key (recording mode)
+  window.electronAPI.onChromaKeyChanged((enabled: boolean) => {
+    document.body.classList.toggle('chroma-key', enabled);
+  });
+
   // Start render loop
   requestAnimationFrame(renderLoop);
 }
