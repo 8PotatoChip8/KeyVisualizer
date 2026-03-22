@@ -1,0 +1,53 @@
+{
+  "name": "keyvisualizer",
+  "version": "1.0.0",
+  "description": "A cross-platform program for displaying active key presses in real time",
+  "main": ".webpack/main",
+  "scripts": {
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "lint": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/8PotatoChip8/KeyVisualizer.git"
+  },
+  "keywords": [
+    "keyboard",
+    "visualizer",
+    "overlay",
+    "key-display",
+    "gaming"
+  ],
+  "author": "8PotatoChip8",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/8PotatoChip8/KeyVisualizer/issues"
+  },
+  "homepage": "https://github.com/8PotatoChip8/KeyVisualizer#readme",
+  "dependencies": {
+    "electron-squirrel-startup": "^1.0.1",
+    "electron-store": "^11.0.2",
+    "uiohook-napi": "^1.5.5"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron-forge/plugin-webpack": "^7.11.1",
+    "@types/node": "^25.3.5",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^7.1.4",
+    "electron": "^41.0.3",
+    "fork-ts-checker-webpack-plugin": "^9.1.0",
+    "html-webpack-plugin": "^5.6.6",
+    "node-loader": "^2.1.0",
+    "style-loader": "^4.0.0",
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

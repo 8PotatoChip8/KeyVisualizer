@@ -1,0 +1,8 @@
+node_modules/
+out/
+dist/
+.webpack/
+*.js.map
+*.d.ts
+.DS_Store
+Thumbs.db
