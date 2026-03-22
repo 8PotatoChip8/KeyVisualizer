@@ -37,7 +37,8 @@ export function createOverlayWindow(): BrowserWindow {
   });
 
   overlayWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  overlayWindow.setOpacity(config.overlayOpacity);
+  // When opaque tiles is on, window must be fully opaque; otherwise use configured opacity
+  overlayWindow.setOpacity(config.overlayTileOpaque ? 1.0 : config.overlayOpacity);
 
   // Apply resolution-aware scaling once content is ready
   overlayWindow.webContents.on('did-finish-load', () => {
@@ -358,6 +359,12 @@ export function onConfigUpdated(partial: Partial<import('../shared/types').AppCo
   // Update capture window background color if it changed
   if (partial.chromaKeyColor && captureWindow && !captureWindow.isDestroyed()) {
     captureWindow.setBackgroundColor(partial.chromaKeyColor);
+  }
+
+  // Update overlay window opacity when opaque tiles setting changes
+  if (partial.overlayTileOpaque !== undefined && overlayWindow && !overlayWindow.isDestroyed()) {
+    const config = getConfig();
+    overlayWindow.setOpacity(partial.overlayTileOpaque ? 1.0 : config.overlayOpacity);
   }
 }
 
