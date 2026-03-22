@@ -6,6 +6,7 @@ import { MakerDMG } from '@electron-forge/maker-dmg';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import * as fs from 'fs';
+import * as path from 'path';
 
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
@@ -15,26 +16,59 @@ const hasIco = fs.existsSync('./assets/icon.ico');
 const hasIcns = fs.existsSync('./assets/icon.icns');
 const hasPng = fs.existsSync('./assets/icon.png');
 
+// Recursively copy a directory
+function copyDirSync(src: string, dest: string): void {
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const srcPath = path.join(src, entry.name);
+    const destPath = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      copyDirSync(srcPath, destPath);
+    } else {
+      fs.copyFileSync(srcPath, destPath);
+    }
+  }
+}
+
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: '**/node_modules/uiohook-napi/**',
+    },
     name: 'KeyVisualizer',
     executableName: 'keyvisualizer',
     ...(hasPng || hasIco || hasIcns ? { icon: './assets/icon' } : {}),
+    afterCopy: [
+      // Manually copy uiohook-napi into the packaged app since the
+      // webpack plugin's automatic native module detection doesn't
+      // reliably handle prebuilt binaries
+      (buildPath: string, _electronVersion: string, _platform: string, _arch: string, callback: (err?: Error) => void) => {
+        try {
+          const srcModule = path.resolve('node_modules', 'uiohook-napi');
+          const destModule = path.join(buildPath, 'node_modules', 'uiohook-napi');
+
+          if (fs.existsSync(srcModule) && !fs.existsSync(destModule)) {
+            console.log('afterCopy: copying uiohook-napi into package');
+            copyDirSync(srcModule, destModule);
+          }
+
+          callback();
+        } catch (err) {
+          callback(err as Error);
+        }
+      },
+    ],
   },
   rebuildConfig: {},
   makers: [
-    // Windows: produces a Setup.exe installer (double-click to install)
     new MakerSquirrel({
       name: 'KeyVisualizer',
       ...(hasIco ? { setupIcon: './assets/icon.ico' } : {}),
     }),
-    // macOS: produces a .dmg (double-click to install)
     new MakerDMG({
       name: 'KeyVisualizer',
       ...(hasIcns ? { icon: './assets/icon.icns' } : {}),
     }),
-    // Linux: .deb package
     new MakerDeb({
       options: {
         name: 'keyvisualizer',
@@ -46,7 +80,6 @@ const config: ForgeConfig = {
         ...(hasPng ? { icon: './assets/icon.png' } : {}),
       },
     }),
-    // Universal zip fallback for all platforms
     new MakerZIP({}, ['darwin', 'linux', 'win32']),
   ],
   publishers: [
