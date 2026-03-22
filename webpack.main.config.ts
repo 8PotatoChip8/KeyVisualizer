@@ -21,6 +21,5 @@ export const mainConfig: Configuration = {
   },
   externals: {
     'uiohook-napi': 'commonjs uiohook-napi',
-    'electron-store': 'commonjs electron-store',
   },
 };
