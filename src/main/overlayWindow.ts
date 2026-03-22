@@ -1,5 +1,4 @@
 import { BrowserWindow } from 'electron';
-import * as path from 'path';
 import { getConfig } from './store';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -11,8 +10,8 @@ export function createOverlayWindow(): BrowserWindow {
   const config = getConfig();
 
   overlayWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
+    width: 500,
+    height: 400,
     x: config.overlayX,
     y: config.overlayY,
     transparent: true,
@@ -22,6 +21,8 @@ export function createOverlayWindow(): BrowserWindow {
     hasShadow: false,
     resizable: false,
     focusable: false,
+    // Use fully transparent background color to avoid artifacts on Linux
+    backgroundColor: '#00000000',
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       contextIsolation: true,
@@ -34,6 +35,11 @@ export function createOverlayWindow(): BrowserWindow {
 
   if (config.clickThrough) {
     overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  }
+
+  // Open devtools in dev for debugging (detached so it doesn't affect the overlay)
+  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_OVERLAY) {
+    overlayWindow.webContents.openDevTools({ mode: 'detach' });
   }
 
   overlayWindow.on('closed', () => {

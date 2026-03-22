@@ -2,12 +2,41 @@ import { uIOhook, UiohookKeyboardEvent, UiohookMouseEvent, UiohookWheelEvent } f
 import { BrowserWindow } from 'electron';
 import { KEYCODE_LABELS, MOUSE_BUTTON_LABELS } from '../shared/constants';
 import { KeyEvent, MouseButtonEvent, MouseWheelEvent } from '../shared/types';
+import { canUseEvdev, startEvdevListener, stopEvdevListener } from './evdevReader';
 
 let targetWindow: BrowserWindow | null = null;
+let usingEvdev = false;
 
 export function startKeyListener(win: BrowserWindow): void {
   targetWindow = win;
 
+  // On Linux, check if we should use evdev (needed for Wayland)
+  if (process.platform === 'linux' && canUseEvdev()) {
+    console.log('KeyListener: using evdev backend (Wayland-compatible)');
+    usingEvdev = true;
+    startEvdevListener(win);
+    return;
+  }
+
+  // Fall back to uiohook (works on X11, Windows, macOS)
+  console.log('KeyListener: using uiohook backend');
+  startUiohook();
+}
+
+export function stopKeyListener(): void {
+  if (usingEvdev) {
+    stopEvdevListener();
+  } else {
+    try {
+      uIOhook.stop();
+    } catch {
+      // Ignore errors during shutdown
+    }
+  }
+  targetWindow = null;
+}
+
+function startUiohook(): void {
   // Keyboard events
   uIOhook.on('keydown', (e: UiohookKeyboardEvent) => {
     sendKeyEvent(e.keycode, true);
@@ -32,11 +61,6 @@ export function startKeyListener(win: BrowserWindow): void {
   });
 
   uIOhook.start();
-}
-
-export function stopKeyListener(): void {
-  uIOhook.stop();
-  targetWindow = null;
 }
 
 function sendKeyEvent(keycode: number, pressed: boolean): void {

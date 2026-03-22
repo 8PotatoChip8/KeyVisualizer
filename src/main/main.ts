@@ -10,7 +10,10 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
-app.whenReady().then(() => {
+// Required for transparent windows on Linux
+app.commandLine.appendSwitch('enable-transparent-visuals');
+
+const createApp = () => {
   // Register IPC handlers
   ipcMain.handle('get-config', () => getConfig());
   ipcMain.handle('set-config', (_event, config) => setConfig(config));
@@ -19,6 +22,15 @@ app.whenReady().then(() => {
   const win = createOverlayWindow();
   startKeyListener(win);
   createTray();
+};
+
+app.whenReady().then(() => {
+  // Linux needs a delay after ready for transparent visuals to initialize
+  if (process.platform === 'linux') {
+    setTimeout(createApp, 300);
+  } else {
+    createApp();
+  }
 });
 
 app.on('window-all-closed', () => {

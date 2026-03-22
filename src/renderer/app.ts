@@ -14,14 +14,14 @@ async function init(): Promise<void> {
   // Listen for keyboard events
   window.electronAPI.onKeyEvent((event: KeyEvent) => {
     const id = `key:${event.keycode}`;
-    handleInput(id, event.label, 'key', event.pressed, event.timestamp, event.wallClock);
+    handleInput(id, event.label, 'key', event.pressed, event.wallClock);
   });
 
   // Listen for mouse button events
   if (config.showMouseButtons) {
     window.electronAPI.onMouseButton((event: MouseButtonEvent) => {
       const id = `mouse:${event.button}`;
-      handleInput(id, event.label, 'mouse-button', event.pressed, event.timestamp, event.wallClock);
+      handleInput(id, event.label, 'mouse-button', event.pressed, event.wallClock);
     });
   }
 
@@ -29,11 +29,11 @@ async function init(): Promise<void> {
   if (config.showMouseScroll) {
     window.electronAPI.onMouseWheel((event: MouseWheelEvent) => {
       const id = `scroll:${event.direction}`;
-      const label = event.direction === 'up' ? 'Scroll ↑' : 'Scroll ↓';
-      handleInput(id, label, 'scroll', true, event.timestamp, event.wallClock);
+      const label = event.direction === 'up' ? 'Scroll Up' : 'Scroll Down';
+      handleInput(id, label, 'scroll', true, event.wallClock);
       // Auto-release scroll after a brief moment
       setTimeout(() => {
-        handleInput(id, label, 'scroll', false, performance.now(), Date.now());
+        handleInput(id, label, 'scroll', false, Date.now());
       }, 300);
     });
   }
@@ -52,12 +52,12 @@ function handleInput(
   label: string,
   type: 'key' | 'mouse-button' | 'scroll',
   pressed: boolean,
-  timestamp: number,
   wallClock: number
 ): void {
-  const existing = inputStates.get(id);
-
   if (pressed) {
+    // Use renderer-local performance.now() for duration tracking
+    const now = performance.now();
+
     inputStates.set(id, {
       id,
       label,
@@ -65,21 +65,24 @@ function handleInput(
       pressed: true,
       pressedAt: wallClock,
       pressDuration: 0,
-      pressStartHr: timestamp,
+      pressStartHr: now,
       releasedAt: 0,
     });
 
-    // Create tile if it doesn't exist
+    // Create tile if it doesn't exist, or re-add if it was removed
     if (!tiles.has(id)) {
       const state = inputStates.get(id)!;
       const tile = new InputTile(state, config.showTimestamps, config.showDuration);
       tiles.set(id, tile);
       container.appendChild(tile.element);
     }
-  } else if (existing) {
-    existing.pressed = false;
-    existing.pressDuration = performance.now() - existing.pressStartHr;
-    existing.releasedAt = performance.now();
+  } else {
+    const existing = inputStates.get(id);
+    if (existing) {
+      existing.pressed = false;
+      existing.pressDuration = performance.now() - existing.pressStartHr;
+      existing.releasedAt = performance.now();
+    }
   }
 }
 
