@@ -8,8 +8,18 @@
 <body>
   <div id="edit-toolbar">
     <span class="edit-label">Drag to reposition</span>
-    <button id="edit-confirm" title="Confirm position">&#10003;</button>
-    <button id="edit-cancel" title="Cancel">&#10005;</button>
+    <div class="edit-presets">
+      <button class="preset-btn" data-preset="top-left" title="Top Left">TL</button>
+      <button class="preset-btn" data-preset="top-right" title="Top Right">TR</button>
+      <button class="preset-btn" data-preset="bottom-left" title="Bottom Left">BL</button>
+      <button class="preset-btn" data-preset="bottom-right" title="Bottom Right">BR</button>
+      <button class="preset-btn" data-preset="center" title="Center">C</button>
+      <button class="preset-btn" data-preset="default" title="Reset to Default">Reset</button>
+    </div>
+    <div class="edit-actions">
+      <button id="edit-confirm" title="Confirm position">&#10003;</button>
+      <button id="edit-cancel" title="Cancel">&#10005;</button>
+    </div>
   </div>
   <div id="overlay-container"></div>
 </body>

@@ -1,5 +1,6 @@
-import { BrowserWindow } from 'electron';
+import { BrowserWindow, screen } from 'electron';
 import { getConfig, setConfig } from './store';
+import { DEFAULT_CONFIG } from '../shared/constants';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -71,6 +72,49 @@ export function confirmEditMode(): void {
 
 export function cancelEditMode(): void {
   exitEditMode(false);
+}
+
+export function moveToPreset(preset: string): void {
+  if (!overlayWindow) return;
+
+  const bounds = overlayWindow.getBounds();
+  const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
+  const workArea = display.workArea;
+  const padding = 20;
+
+  let x: number;
+  let y: number;
+
+  switch (preset) {
+    case 'top-left':
+      x = workArea.x + padding;
+      y = workArea.y + padding;
+      break;
+    case 'top-right':
+      x = workArea.x + workArea.width - bounds.width - padding;
+      y = workArea.y + padding;
+      break;
+    case 'bottom-left':
+      x = workArea.x + padding;
+      y = workArea.y + workArea.height - bounds.height - padding;
+      break;
+    case 'bottom-right':
+      x = workArea.x + workArea.width - bounds.width - padding;
+      y = workArea.y + workArea.height - bounds.height - padding;
+      break;
+    case 'center':
+      x = workArea.x + Math.round((workArea.width - bounds.width) / 2);
+      y = workArea.y + Math.round((workArea.height - bounds.height) / 2);
+      break;
+    case 'default':
+      x = DEFAULT_CONFIG.overlayX;
+      y = DEFAULT_CONFIG.overlayY;
+      break;
+    default:
+      return;
+  }
+
+  overlayWindow.setPosition(x, y);
 }
 
 function exitEditMode(save: boolean): void {
