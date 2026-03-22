@@ -19,6 +19,9 @@ export function getConfig(): AppConfig {
     showMouseButtons: store.get('showMouseButtons'),
     showMouseScroll: store.get('showMouseScroll'),
     scale: store.get('scale'),
+    chromaKeyColor: store.get('chromaKeyColor'),
+    overlayTileOpaque: store.get('overlayTileOpaque'),
+    captureTileOpaque: store.get('captureTileOpaque'),
   };
 }
 

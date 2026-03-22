@@ -52,6 +52,9 @@ export interface AppConfig {
   showMouseButtons: boolean;
   showMouseScroll: boolean;
   scale: number;              // user scale percentage (100 = default)
+  chromaKeyColor: string;      // hex color for recording window background
+  overlayTileOpaque: boolean;  // true = fully opaque tile backgrounds in overlay
+  captureTileOpaque: boolean;  // true = fully opaque tile backgrounds in capture window
 }
 
 export interface ElectronAPI {
@@ -62,6 +65,7 @@ export interface ElectronAPI {
   setConfig: (config: Partial<AppConfig>) => Promise<void>;
   setEditMode: (enabled: boolean) => void;
   onEditModeChanged: (callback: (enabled: boolean) => void) => void;
+  onConfigChanged: (callback: (config: AppConfig) => void) => void;
 }
 
 declare global {

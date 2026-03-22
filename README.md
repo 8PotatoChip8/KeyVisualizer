@@ -13,6 +13,7 @@ A cross-platform desktop application that displays active key presses and mouse 
 - **Resolution-aware scaling** — Auto-scales based on screen resolution (normalized to 1080p) with adjustable scale slider (50%–200%)
 - **Position presets** — Quickly snap the overlay to Top Left, Top Right, Bottom Left, Bottom Right, Center, or reset to default
 - **OBS recording mode** — Companion capture window for seamless recording in OBS Studio (see [Recording with OBS](#recording-with-obs-studio))
+- **Settings** — Customizable chroma key color, tile transparency options for both overlay and recording windows
 - **System tray** — Minimize to tray, toggle visibility, reposition the overlay
 - **Cross-platform** — Works on Windows, macOS, and Linux
 
@@ -73,6 +74,7 @@ npm run make
 | **Show/Hide Overlay** | Toggle overlay visibility |
 | **Edit Position** | Opens the edit panel — drag the overlay to reposition, use preset buttons, or adjust scale |
 | **Recording Mode (OBS)** | Toggle companion capture window for OBS Studio recording |
+| **Settings** | Open the settings window (chroma key color, tile transparency) |
 | **Quit** | Exit the application |
 
 ### Edit Position Panel
@@ -94,18 +96,28 @@ The overlay border becomes a dashed blue outline in edit mode so you can see its
 | Mouse buttons (LMB, RMB, MMB) | Orange glow |
 | Scroll wheel | Green glow |
 
+### Settings
+
+Open **Settings** from the system tray menu to configure:
+
+- **Recording background color** — Choose from presets (Magenta, Green, Blue, Red, Cyan, Black) or pick a custom color. This is the chroma key color used by the recording window.
+- **Opaque tiles (Overlay)** — Remove transparency from tile backgrounds in the main overlay
+- **Opaque tiles (Recording)** — Remove transparency from tile backgrounds in the recording window for cleaner chroma keying
+
 ## Recording with OBS Studio
 
 KeyVisualizer uses a transparent overlay window, which OBS **Window Capture** cannot see directly. To record the overlay in OBS:
 
 1. **Enable Recording Mode** — Right-click the system tray icon and check **Recording Mode (OBS)**
 2. **Add a Window Capture source** in OBS — Select **"KeyVisualizer [Recording]"** from the window list
-3. **Add a Color Key filter** — Right-click the source in OBS → **Filters** → **+** → **Color Key**
-   - Set **Key Color Type** to **Custom Color** and enter **#FF00FF** (magenta)
-   - Adjust **Similarity** and **Smoothness** until the magenta background is fully removed
+3. **Add a Chroma Key filter** — Right-click the source in OBS → **Filters** → **+** → **Chroma Key**
+   - Set **Key Color Type** to **Custom Color** and match the color in Settings (magenta `#FF00FF` by default)
+   - Adjust **Similarity** and **Smoothness** until the background is fully removed
 4. The overlay will now appear with a transparent background in your recording/stream
 
-You will still see the normal transparent overlay on your screen — the magenta-backed window runs in the background purely for OBS to capture.
+You will still see the normal transparent overlay on your screen — the colored-background window runs in the background purely for OBS to capture.
+
+> **Tip:** Use **Chroma Key** rather than **Color Key** in OBS — it handles semi-transparent edges and anti-aliased borders better. If you want the cleanest possible result, enable **Opaque tiles (Recording)** in Settings to eliminate transparency bleed on tile backgrounds.
 
 > **Tip:** OBS **Display Capture** can also capture the transparent overlay directly without recording mode, but it captures your entire screen. Use Recording Mode when you need to capture only the overlay as its own source.
 

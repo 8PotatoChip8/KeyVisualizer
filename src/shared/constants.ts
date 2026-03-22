@@ -67,4 +67,7 @@ export const DEFAULT_CONFIG: AppConfig = {
   showMouseButtons: true,
   showMouseScroll: true,
   scale: 100,
+  chromaKeyColor: '#FF00FF',
+  overlayTileOpaque: false,
+  captureTileOpaque: false,
 };

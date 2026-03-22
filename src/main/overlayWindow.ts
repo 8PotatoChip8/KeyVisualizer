@@ -153,7 +153,7 @@ function createCaptureWindow(): void {
     focusable: true,
     skipTaskbar: false, // Show in taskbar so OBS can find it
     alwaysOnTop: false, // Sits behind the transparent overlay
-    backgroundColor: '#00FF00',
+    backgroundColor: getConfig().chromaKeyColor,
     title: 'KeyVisualizer [Recording]',
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -351,6 +351,13 @@ function closeEditPanel(): void {
     editPanelWindow.removeAllListeners('closed');
     editPanelWindow.on('closed', () => { editPanelWindow = null; });
     editPanelWindow.close();
+  }
+}
+
+export function onConfigUpdated(partial: Partial<import('../shared/types').AppConfig>): void {
+  // Update capture window background color if it changed
+  if (partial.chromaKeyColor && captureWindow && !captureWindow.isDestroyed()) {
+    captureWindow.setBackgroundColor(partial.chromaKeyColor);
   }
 }
 

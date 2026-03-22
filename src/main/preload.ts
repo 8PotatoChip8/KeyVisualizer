@@ -33,6 +33,12 @@ const api: ElectronAPI = {
     });
   },
 
+  onConfigChanged: (callback: (config: AppConfig) => void) => {
+    ipcRenderer.on('config-changed', (_event, config: AppConfig) => {
+      callback(config);
+    });
+  },
+
 };
 
 contextBridge.exposeInMainWorld('electronAPI', api);

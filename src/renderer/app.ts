@@ -11,9 +11,19 @@ async function init(): Promise<void> {
   config = await window.electronAPI.getConfig();
   container = document.getElementById('overlay-container')!;
 
+  const isChromaKey = window.location.search.includes('chromakey=1');
+
   // Check if this is the chroma key capture window
-  if (window.location.search.includes('chromakey=1')) {
+  if (isChromaKey) {
     document.body.classList.add('chroma-key');
+    document.body.style.background = config.chromaKeyColor;
+    if (config.captureTileOpaque) {
+      document.body.classList.add('opaque-tiles');
+    }
+  } else {
+    if (config.overlayTileOpaque) {
+      document.body.classList.add('opaque-tiles');
+    }
   }
 
   // Listen for keyboard events
@@ -46,6 +56,17 @@ async function init(): Promise<void> {
   // Listen for edit mode
   window.electronAPI.onEditModeChanged((enabled: boolean) => {
     document.body.classList.toggle('edit-mode', enabled);
+  });
+
+  // Listen for config changes (settings updates)
+  window.electronAPI.onConfigChanged((updatedConfig: AppConfig) => {
+    config = updatedConfig;
+    if (isChromaKey) {
+      document.body.style.background = config.chromaKeyColor;
+      document.body.classList.toggle('opaque-tiles', config.captureTileOpaque);
+    } else {
+      document.body.classList.toggle('opaque-tiles', config.overlayTileOpaque);
+    }
   });
 
   // Start render loop

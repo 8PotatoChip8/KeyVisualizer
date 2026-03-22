@@ -1,5 +1,6 @@
 import { Tray, Menu, nativeImage, app } from 'electron';
 import { getOverlayWindow, setEditMode, setRecordingMode, isRecordingModeEnabled } from './overlayWindow';
+import { openSettingsWindow } from './settingsWindow';
 
 let tray: Tray | null = null;
 
@@ -50,6 +51,12 @@ function updateTrayMenu(): void {
       checked: isRecordingModeEnabled(),
       click: (menuItem) => {
         setRecordingMode(menuItem.checked);
+      },
+    },
+    {
+      label: 'Settings',
+      click: () => {
+        openSettingsWindow();
       },
     },
     { type: 'separator' },
