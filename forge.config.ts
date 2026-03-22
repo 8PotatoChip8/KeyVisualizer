@@ -33,23 +33,27 @@ function copyDirSync(src: string, dest: string): void {
 const config: ForgeConfig = {
   packagerConfig: {
     asar: {
-      unpack: '**/node_modules/uiohook-napi/**',
+      unpack: '**/node_modules/{uiohook-napi,node-gyp-build}/**',
     },
     name: 'KeyVisualizer',
     executableName: 'keyvisualizer',
     ...(hasPng || hasIco || hasIcns ? { icon: './assets/icon' } : {}),
     afterCopy: [
-      // Manually copy uiohook-napi into the packaged app since the
-      // webpack plugin's automatic native module detection doesn't
-      // reliably handle prebuilt binaries
+      // Copy uiohook-napi and its full dependency tree into the package.
+      // The webpack plugin marks it as external (native addon), but doesn't
+      // reliably copy it or its deps (node-gyp-build) into the output.
       (buildPath: string, _electronVersion: string, _platform: string, _arch: string, callback: (err?: Error) => void) => {
         try {
-          const srcModule = path.resolve('node_modules', 'uiohook-napi');
-          const destModule = path.join(buildPath, 'node_modules', 'uiohook-napi');
+          const modulesToCopy = ['uiohook-napi', 'node-gyp-build'];
 
-          if (fs.existsSync(srcModule) && !fs.existsSync(destModule)) {
-            console.log('afterCopy: copying uiohook-napi into package');
-            copyDirSync(srcModule, destModule);
+          for (const mod of modulesToCopy) {
+            const src = path.resolve('node_modules', mod);
+            const dest = path.join(buildPath, 'node_modules', mod);
+
+            if (fs.existsSync(src) && !fs.existsSync(dest)) {
+              console.log(`afterCopy: copying ${mod} into package`);
+              copyDirSync(src, dest);
+            }
           }
 
           callback();
