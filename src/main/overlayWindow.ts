@@ -6,6 +6,7 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 let overlayWindow: BrowserWindow | null = null;
+let editPanelWindow: BrowserWindow | null = null;
 let editModeOriginalBounds: { x: number; y: number } | null = null;
 
 export function createOverlayWindow(): BrowserWindow {
@@ -61,6 +62,8 @@ export function setEditMode(enabled: boolean): void {
     overlayWindow.setFocusable(true);
     overlayWindow.setResizable(true);
     overlayWindow.webContents.send('edit-mode-changed', true);
+
+    openEditPanel();
   } else {
     confirmEditMode();
   }
@@ -117,6 +120,95 @@ export function moveToPreset(preset: string): void {
   overlayWindow.setPosition(x, y);
 }
 
+function getEditPanelHTML(): string {
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Edit Position</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:#1e1e2a;color:#c8c8d2;padding:12px;user-select:none}
+h3{font-size:13px;color:rgba(180,200,255,0.9);margin-bottom:10px;text-align:center}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(140,150,180,0.7);margin-bottom:4px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px}
+.preset-btn{height:28px;border:1px solid rgba(100,120,180,0.5);border-radius:4px;background:rgba(50,60,80,0.8);color:rgba(180,200,255,0.9);font-size:11px;font-weight:600;cursor:pointer;transition:background-color 100ms ease,border-color 100ms ease}
+.preset-btn:hover{background:rgba(70,90,130,0.9);border-color:rgba(120,150,220,0.8)}
+.actions{display:flex;gap:6px;margin-top:6px}
+.action-btn{flex:1;height:32px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background-color 100ms ease}
+.action-btn.confirm{background:rgba(60,180,100,0.85);color:#fff}
+.action-btn.confirm:hover{background:rgba(70,200,110,0.95)}
+.action-btn.cancel{background:rgba(200,60,60,0.85);color:#fff}
+.action-btn.cancel:hover{background:rgba(220,70,70,0.95)}
+</style></head><body>
+<h3>Drag overlay to reposition</h3>
+<div class="section-label">Presets</div>
+<div class="preset-grid">
+  <button class="preset-btn" data-preset="top-left">Top Left</button>
+  <button class="preset-btn" data-preset="center">Center</button>
+  <button class="preset-btn" data-preset="top-right">Top Right</button>
+  <button class="preset-btn" data-preset="bottom-left">Bottom Left</button>
+  <button class="preset-btn" data-preset="default">Reset</button>
+  <button class="preset-btn" data-preset="bottom-right">Bottom Right</button>
+</div>
+<div class="actions">
+  <button class="action-btn confirm" id="btn-confirm">Confirm</button>
+  <button class="action-btn cancel" id="btn-cancel">Cancel</button>
+</div>
+<script>
+  const{ipcRenderer}=require('electron');
+  document.querySelectorAll('.preset-btn').forEach(b=>{
+    b.addEventListener('click',()=>ipcRenderer.send('move-to-preset',b.dataset.preset));
+  });
+  document.getElementById('btn-confirm').addEventListener('click',()=>ipcRenderer.send('confirm-edit-mode'));
+  document.getElementById('btn-cancel').addEventListener('click',()=>ipcRenderer.send('cancel-edit-mode'));
+</script></body></html>`;
+}
+
+function openEditPanel(): void {
+  if (editPanelWindow) {
+    editPanelWindow.focus();
+    return;
+  }
+
+  const display = screen.getPrimaryDisplay();
+  const panelWidth = 240;
+  const panelHeight = 210;
+  const x = Math.round(display.workArea.x + (display.workArea.width - panelWidth) / 2);
+  const y = Math.round(display.workArea.y + (display.workArea.height - panelHeight) / 2);
+
+  editPanelWindow = new BrowserWindow({
+    width: panelWidth,
+    height: panelHeight,
+    x,
+    y,
+    frame: false,
+    resizable: false,
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+    },
+  });
+
+  editPanelWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(getEditPanelHTML()));
+
+  editPanelWindow.on('closed', () => {
+    editPanelWindow = null;
+    // If panel is closed without confirming/canceling, treat as confirm
+    if (editModeOriginalBounds) {
+      exitEditMode(true);
+    }
+  });
+}
+
+function closeEditPanel(): void {
+  if (editPanelWindow) {
+    // Detach close handler to avoid double-triggering exitEditMode
+    editPanelWindow.removeAllListeners('closed');
+    editPanelWindow.on('closed', () => { editPanelWindow = null; });
+    editPanelWindow.close();
+  }
+}
+
 function exitEditMode(save: boolean): void {
   if (!overlayWindow) return;
 
@@ -137,4 +229,5 @@ function exitEditMode(save: boolean): void {
   overlayWindow.setResizable(false);
 
   overlayWindow.webContents.send('edit-mode-changed', false);
+  closeEditPanel();
 }

@@ -38,23 +38,6 @@ async function init(): Promise<void> {
     });
   }
 
-  // Edit mode toolbar buttons
-  document.getElementById('edit-confirm')!.addEventListener('click', (e) => {
-    e.stopPropagation();
-    window.electronAPI.confirmEditMode();
-  });
-  document.getElementById('edit-cancel')!.addEventListener('click', (e) => {
-    e.stopPropagation();
-    window.electronAPI.cancelEditMode();
-  });
-  document.querySelectorAll('.preset-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const preset = (btn as HTMLElement).dataset.preset!;
-      window.electronAPI.moveToPreset(preset);
-    });
-  });
-
   // Listen for edit mode
   window.electronAPI.onEditModeChanged((enabled: boolean) => {
     document.body.classList.toggle('edit-mode', enabled);
