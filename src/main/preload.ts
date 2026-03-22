@@ -27,6 +27,14 @@ const api: ElectronAPI = {
     ipcRenderer.send('set-edit-mode', enabled);
   },
 
+  confirmEditMode: () => {
+    ipcRenderer.send('confirm-edit-mode');
+  },
+
+  cancelEditMode: () => {
+    ipcRenderer.send('cancel-edit-mode');
+  },
+
   onEditModeChanged: (callback: (enabled: boolean) => void) => {
     ipcRenderer.on('edit-mode-changed', (_event, enabled: boolean) => {
       callback(enabled);

@@ -1,10 +1,11 @@
 import { BrowserWindow } from 'electron';
-import { getConfig } from './store';
+import { getConfig, setConfig } from './store';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 let overlayWindow: BrowserWindow | null = null;
+let editModeOriginalBounds: { x: number; y: number } | null = null;
 
 export function createOverlayWindow(): BrowserWindow {
   const config = getConfig();
@@ -52,23 +53,44 @@ export function setEditMode(enabled: boolean): void {
   if (!overlayWindow) return;
 
   if (enabled) {
+    const bounds = overlayWindow.getBounds();
+    editModeOriginalBounds = { x: bounds.x, y: bounds.y };
+
     overlayWindow.setIgnoreMouseEvents(false);
     overlayWindow.setFocusable(true);
     overlayWindow.setResizable(true);
+    overlayWindow.webContents.send('edit-mode-changed', true);
   } else {
-    const config = getConfig();
+    confirmEditMode();
+  }
+}
+
+export function confirmEditMode(): void {
+  exitEditMode(true);
+}
+
+export function cancelEditMode(): void {
+  exitEditMode(false);
+}
+
+function exitEditMode(save: boolean): void {
+  if (!overlayWindow) return;
+
+  if (save) {
     const bounds = overlayWindow.getBounds();
-
-    // Save position when exiting edit mode
-    const { setConfig } = require('./store');
     setConfig({ overlayX: bounds.x, overlayY: bounds.y });
-
-    if (config.clickThrough) {
-      overlayWindow.setIgnoreMouseEvents(true, { forward: true });
-    }
-    overlayWindow.setFocusable(false);
-    overlayWindow.setResizable(false);
+  } else if (editModeOriginalBounds) {
+    overlayWindow.setPosition(editModeOriginalBounds.x, editModeOriginalBounds.y);
   }
 
-  overlayWindow.webContents.send('edit-mode-changed', enabled);
+  editModeOriginalBounds = null;
+
+  const config = getConfig();
+  if (config.clickThrough) {
+    overlayWindow.setIgnoreMouseEvents(true, { forward: true });
+  }
+  overlayWindow.setFocusable(false);
+  overlayWindow.setResizable(false);
+
+  overlayWindow.webContents.send('edit-mode-changed', false);
 }

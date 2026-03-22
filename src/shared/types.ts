@@ -60,6 +60,8 @@ export interface ElectronAPI {
   getConfig: () => Promise<AppConfig>;
   setConfig: (config: Partial<AppConfig>) => Promise<void>;
   setEditMode: (enabled: boolean) => void;
+  confirmEditMode: () => void;
+  cancelEditMode: () => void;
   onEditModeChanged: (callback: (enabled: boolean) => void) => void;
 }
 

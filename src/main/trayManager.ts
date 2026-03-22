@@ -42,8 +42,6 @@ function updateTrayMenu(): void {
       label: 'Edit Position',
       click: () => {
         setEditMode(true);
-        // Auto-exit edit mode after 10 seconds
-        setTimeout(() => setEditMode(false), 10000);
       },
     },
     { type: 'separator' },
