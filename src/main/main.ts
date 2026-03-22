@@ -3,7 +3,7 @@ import { createOverlayWindow } from './overlayWindow';
 import { startKeyListener, stopKeyListener } from './keyListener';
 import { createTray, destroyTray } from './trayManager';
 import { getConfig, setConfig } from './store';
-import { setEditMode, confirmEditMode, cancelEditMode, moveToPreset } from './overlayWindow';
+import { setEditMode, confirmEditMode, cancelEditMode, moveToPreset, setOverlayScale } from './overlayWindow';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -21,6 +21,7 @@ const createApp = () => {
   ipcMain.on('confirm-edit-mode', () => confirmEditMode());
   ipcMain.on('cancel-edit-mode', () => cancelEditMode());
   ipcMain.on('move-to-preset', (_event, preset: string) => moveToPreset(preset));
+  ipcMain.on('set-overlay-scale', (_event, scale: number) => setOverlayScale(scale));
 
   const win = createOverlayWindow();
   startKeyListener(win);

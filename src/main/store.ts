@@ -18,6 +18,7 @@ export function getConfig(): AppConfig {
     fadeOutDelay: store.get('fadeOutDelay'),
     showMouseButtons: store.get('showMouseButtons'),
     showMouseScroll: store.get('showMouseScroll'),
+    scale: store.get('scale'),
   };
 }
 

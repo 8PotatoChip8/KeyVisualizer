@@ -51,6 +51,7 @@ export interface AppConfig {
   fadeOutDelay: number;     // ms before a released input fades from view
   showMouseButtons: boolean;
   showMouseScroll: boolean;
+  scale: number;              // user scale percentage (100 = default)
 }
 
 export interface ElectronAPI {

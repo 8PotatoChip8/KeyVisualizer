@@ -8,6 +8,7 @@ declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 let overlayWindow: BrowserWindow | null = null;
 let editPanelWindow: BrowserWindow | null = null;
 let editModeOriginalBounds: { x: number; y: number } | null = null;
+let editModeOriginalScale: number | null = null;
 
 export function createOverlayWindow(): BrowserWindow {
   const config = getConfig();
@@ -36,6 +37,11 @@ export function createOverlayWindow(): BrowserWindow {
   overlayWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
   overlayWindow.setOpacity(config.overlayOpacity);
 
+  // Apply resolution-aware scaling once content is ready
+  overlayWindow.webContents.on('did-finish-load', () => {
+    applyOverlayZoom();
+  });
+
   if (config.clickThrough) {
     overlayWindow.setIgnoreMouseEvents(true, { forward: true });
   }
@@ -57,6 +63,7 @@ export function setEditMode(enabled: boolean): void {
   if (enabled) {
     const bounds = overlayWindow.getBounds();
     editModeOriginalBounds = { x: bounds.x, y: bounds.y };
+    editModeOriginalScale = getConfig().scale;
 
     overlayWindow.setIgnoreMouseEvents(false);
     overlayWindow.setFocusable(true);
@@ -75,6 +82,28 @@ export function confirmEditMode(): void {
 
 export function cancelEditMode(): void {
   exitEditMode(false);
+}
+
+function applyOverlayZoom(): void {
+  if (!overlayWindow) return;
+  const config = getConfig();
+  const bounds = overlayWindow.getBounds();
+  const display = screen.getDisplayNearestPoint({ x: bounds.x, y: bounds.y });
+  // Normalize to 1080p: on higher-res screens, scale up proportionally
+  const resolutionScale = display.size.height / 1080;
+  const userScale = config.scale / 100;
+  overlayWindow.webContents.setZoomFactor(resolutionScale * userScale);
+}
+
+export function setOverlayScale(scale: number): void {
+  setConfig({ scale });
+  applyOverlayZoom();
+  // Update the slider label in the edit panel if open
+  if (editPanelWindow) {
+    editPanelWindow.webContents.executeJavaScript(
+      `document.getElementById('scale-value').textContent='${scale}%'`
+    ).catch(() => {});
+  }
 }
 
 export function moveToPreset(preset: string): void {
@@ -120,18 +149,22 @@ export function moveToPreset(preset: string): void {
   overlayWindow.setPosition(x, y);
 }
 
-function getEditPanelHTML(): string {
+function getEditPanelHTML(currentScale: number): string {
   return `<!DOCTYPE html>
 <html><head><meta charset="UTF-8"><title>Edit Position</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;background:#1e1e2a;color:#c8c8d2;padding:12px;user-select:none}
 h3{font-size:13px;color:rgba(180,200,255,0.9);margin-bottom:10px;text-align:center}
-.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(140,150,180,0.7);margin-bottom:4px}
-.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:10px}
+.section-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(140,150,180,0.7);margin-bottom:6px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:12px}
 .preset-btn{height:28px;border:1px solid rgba(100,120,180,0.5);border-radius:4px;background:rgba(50,60,80,0.8);color:rgba(180,200,255,0.9);font-size:11px;font-weight:600;cursor:pointer;transition:background-color 100ms ease,border-color 100ms ease}
 .preset-btn:hover{background:rgba(70,90,130,0.9);border-color:rgba(120,150,220,0.8)}
-.actions{display:flex;gap:6px;margin-top:6px}
+.scale-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.scale-slider{flex:1;-webkit-appearance:none;height:6px;border-radius:3px;background:rgba(50,60,80,0.8);outline:none}
+.scale-slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:rgba(100,160,255,0.9);cursor:pointer}
+.scale-value{font-size:12px;color:rgba(180,200,255,0.9);min-width:38px;text-align:right}
+.actions{display:flex;gap:6px}
 .action-btn{flex:1;height:32px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;transition:background-color 100ms ease}
 .action-btn.confirm{background:rgba(60,180,100,0.85);color:#fff}
 .action-btn.confirm:hover{background:rgba(70,200,110,0.95)}
@@ -148,6 +181,11 @@ h3{font-size:13px;color:rgba(180,200,255,0.9);margin-bottom:10px;text-align:cent
   <button class="preset-btn" data-preset="default">Reset</button>
   <button class="preset-btn" data-preset="bottom-right">Bottom Right</button>
 </div>
+<div class="section-label">Scale</div>
+<div class="scale-row">
+  <input type="range" class="scale-slider" id="scale-slider" min="50" max="200" step="5" value="${currentScale}">
+  <span class="scale-value" id="scale-value">${currentScale}%</span>
+</div>
 <div class="actions">
   <button class="action-btn confirm" id="btn-confirm">Confirm</button>
   <button class="action-btn cancel" id="btn-cancel">Cancel</button>
@@ -156,6 +194,12 @@ h3{font-size:13px;color:rgba(180,200,255,0.9);margin-bottom:10px;text-align:cent
   const{ipcRenderer}=require('electron');
   document.querySelectorAll('.preset-btn').forEach(b=>{
     b.addEventListener('click',()=>ipcRenderer.send('move-to-preset',b.dataset.preset));
+  });
+  const slider=document.getElementById('scale-slider');
+  const valueLabel=document.getElementById('scale-value');
+  slider.addEventListener('input',()=>{
+    valueLabel.textContent=slider.value+'%';
+    ipcRenderer.send('set-overlay-scale',parseInt(slider.value));
   });
   document.getElementById('btn-confirm').addEventListener('click',()=>ipcRenderer.send('confirm-edit-mode'));
   document.getElementById('btn-cancel').addEventListener('click',()=>ipcRenderer.send('cancel-edit-mode'));
@@ -170,7 +214,7 @@ function openEditPanel(): void {
 
   const display = screen.getPrimaryDisplay();
   const panelWidth = 240;
-  const panelHeight = 210;
+  const panelHeight = 260;
   const x = Math.round(display.workArea.x + (display.workArea.width - panelWidth) / 2);
   const y = Math.round(display.workArea.y + (display.workArea.height - panelHeight) / 2);
 
@@ -189,7 +233,8 @@ function openEditPanel(): void {
     },
   });
 
-  editPanelWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(getEditPanelHTML()));
+  const config = getConfig();
+  editPanelWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(getEditPanelHTML(config.scale)));
 
   editPanelWindow.on('closed', () => {
     editPanelWindow = null;
@@ -215,11 +260,18 @@ function exitEditMode(save: boolean): void {
   if (save) {
     const bounds = overlayWindow.getBounds();
     setConfig({ overlayX: bounds.x, overlayY: bounds.y });
-  } else if (editModeOriginalBounds) {
-    overlayWindow.setPosition(editModeOriginalBounds.x, editModeOriginalBounds.y);
+  } else {
+    if (editModeOriginalBounds) {
+      overlayWindow.setPosition(editModeOriginalBounds.x, editModeOriginalBounds.y);
+    }
+    if (editModeOriginalScale !== null) {
+      setConfig({ scale: editModeOriginalScale });
+      applyOverlayZoom();
+    }
   }
 
   editModeOriginalBounds = null;
+  editModeOriginalScale = null;
 
   const config = getConfig();
   if (config.clickThrough) {

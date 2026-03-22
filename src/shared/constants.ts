@@ -66,4 +66,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   fadeOutDelay: 2000,
   showMouseButtons: true,
   showMouseScroll: true,
+  scale: 100,
 };
