@@ -150,7 +150,7 @@ function createCaptureWindow(): void {
     transparent: false,
     frame: false,
     resizable: false,
-    focusable: false,
+    focusable: true,
     skipTaskbar: false, // Show in taskbar so OBS can find it
     alwaysOnTop: false, // Sits behind the transparent overlay
     backgroundColor: '#00FF00',
@@ -162,12 +162,16 @@ function createCaptureWindow(): void {
     },
   });
 
-  // Load same renderer content — chroma key background is set via CSS
-  const url = new URL(MAIN_WINDOW_WEBPACK_ENTRY);
-  url.searchParams.set('chromakey', '1');
-  captureWindow.loadURL(url.toString());
+  // Prevent the HTML <title> from overriding our window title
+  captureWindow.on('page-title-updated', (e) => {
+    e.preventDefault();
+  });
 
-  // Apply same zoom factor
+  // Append ?chromakey=1 to the entry URL so the renderer sets a green background
+  const separator = MAIN_WINDOW_WEBPACK_ENTRY.includes('?') ? '&' : '?';
+  captureWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY + separator + 'chromakey=1');
+
+  // Apply same zoom factor once loaded
   captureWindow.webContents.on('did-finish-load', () => {
     if (captureWindow && overlayWindow) {
       captureWindow.webContents.setZoomFactor(
