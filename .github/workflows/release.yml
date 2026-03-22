@@ -57,13 +57,7 @@ jobs:
         if: matrix.platform == 'win32'
         run: |
           npm install --no-save png-to-ico
-          node -e "
-            const pngToIco = require('png-to-ico');
-            const fs = require('fs');
-            pngToIco(fs.readFileSync('assets/icon.png'))
-              .then(buf => fs.writeFileSync('assets/icon.ico', buf))
-              .then(() => console.log('icon.ico created'));
-          "
+          node -e "const m = require('png-to-ico'); const fs = require('fs'); const fn = typeof m === 'function' ? m : m.default; fn(['assets/icon.png']).then(buf => { fs.writeFileSync('assets/icon.ico', buf); console.log('icon.ico created'); });"
 
       - name: Install dependencies
         run: npm ci
