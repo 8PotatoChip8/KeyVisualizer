@@ -22,9 +22,7 @@ const config: ForgeConfig = {
     executableName: 'keyvisualizer',
     ...(hasPng || hasIco || hasIcns ? { icon: './assets/icon' } : {}),
   },
-  rebuildConfig: {
-    onlyModules: [], // Skip native rebuild; uiohook-napi ships prebuilt binaries
-  },
+  rebuildConfig: {},
   makers: [
     // Windows: produces a Setup.exe installer (double-click to install)
     new MakerSquirrel({
