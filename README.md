@@ -10,6 +10,9 @@ A cross-platform desktop application that displays active key presses and mouse 
 - **Hold duration** — Track how long each key/button is held, with a visual progress bar
 - **Auto fade-out** — Released inputs fade away after a configurable delay (default 2s)
 - **Transparent overlay** — Sits on top of other windows without interfering (click-through)
+- **Resolution-aware scaling** — Auto-scales based on screen resolution (normalized to 1080p) with adjustable scale slider (50%–200%)
+- **Position presets** — Quickly snap the overlay to Top Left, Top Right, Bottom Left, Bottom Right, Center, or reset to default
+- **OBS recording mode** — Companion capture window for seamless recording in OBS Studio (see [Recording with OBS](#recording-with-obs-studio))
 - **System tray** — Minimize to tray, toggle visibility, reposition the overlay
 - **Cross-platform** — Works on Windows, macOS, and Linux
 
@@ -21,7 +24,11 @@ A cross-platform desktop application that displays active key presses and mouse 
 
 ### From Releases
 
-Download the latest release for your platform from the [Releases](https://github.com/8PotatoChip8/KeyVisualizer/releases) page.
+Download the latest release for your platform from the [Releases](https://github.com/8PotatoChip8/KeyVisualizer/releases) page:
+
+- **Windows** — `KeyVisualizer-1.0.0.Setup.exe` (installer) or `.zip` (portable)
+- **macOS** — `KeyVisualizer.dmg`
+- **Linux** — `keyvisualizer_1.0.0_amd64.deb` or `.zip`
 
 ### From Source
 
@@ -45,7 +52,11 @@ npm run make
 - **Windows** — No special permissions needed
 - **macOS** — Grant Accessibility permission when prompted (required for global key capture)
 - **Linux (X11)** — Install X11 development libraries: `sudo apt install libx11-dev libxtst-dev libxt-dev libxrandr-dev`
-- **Linux (Wayland)** — Limited support; add your user to the `input` group for `/dev/input` access
+- **Linux (Wayland)** — Add your user to the `input` group for `/dev/input` access:
+  ```bash
+  sudo usermod -aG input $USER
+  ```
+  Then log out and back in for the change to take effect.
 
 ## Usage
 
@@ -53,10 +64,27 @@ npm run make
 2. Press any key or click a mouse button — it appears as a tile in the overlay
 3. Tiles glow while held and show timestamps + hold duration
 4. After releasing, tiles fade out after 2 seconds
-5. Right-click the system tray icon to:
-   - **Show/Hide** the overlay
-   - **Edit Position** — drag the overlay to a new position (auto-locks after 10 seconds)
-   - **Quit** the application
+5. Right-click the system tray icon to access options
+
+### System Tray Menu
+
+| Option | Description |
+|--------|-------------|
+| **Show/Hide Overlay** | Toggle overlay visibility |
+| **Edit Position** | Opens the edit panel — drag the overlay to reposition, use preset buttons, or adjust scale |
+| **Recording Mode (OBS)** | Toggle companion capture window for OBS Studio recording |
+| **Quit** | Exit the application |
+
+### Edit Position Panel
+
+When you click **Edit Position**, a control panel appears with:
+
+- **Preset buttons** — Snap the overlay to Top Left, Top Right, Bottom Left, Bottom Right, Center, or Reset to default
+- **Scale slider** — Adjust overlay size from 50% to 200%
+- **Confirm** — Save the new position and scale
+- **Cancel** — Revert to the previous position and scale
+
+The overlay border becomes a dashed blue outline in edit mode so you can see its boundaries while dragging.
 
 ### Input Types & Colors
 
@@ -65,6 +93,21 @@ npm run make
 | Keyboard keys | Blue glow |
 | Mouse buttons (LMB, RMB, MMB) | Orange glow |
 | Scroll wheel | Green glow |
+
+## Recording with OBS Studio
+
+KeyVisualizer uses a transparent overlay window, which OBS **Window Capture** cannot see directly. To record the overlay in OBS:
+
+1. **Enable Recording Mode** — Right-click the system tray icon and check **Recording Mode (OBS)**
+2. **Add a Window Capture source** in OBS — Select **"KeyVisualizer [Recording]"** from the window list
+3. **Add a Color Key filter** — Right-click the source in OBS → **Filters** → **+** → **Color Key**
+   - Set **Key Color Type** to **Green**
+   - Adjust **Similarity** and **Smoothness** until the green background is fully removed
+4. The overlay will now appear with a transparent background in your recording/stream
+
+You will still see the normal transparent overlay on your screen — the green-backed window runs in the background purely for OBS to capture.
+
+> **Tip:** OBS **Display Capture** can also capture the transparent overlay directly without recording mode, but it captures your entire screen. Use Recording Mode when you need to capture only the overlay as its own source.
 
 ## Development
 
