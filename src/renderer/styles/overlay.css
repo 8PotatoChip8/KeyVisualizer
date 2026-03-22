@@ -24,9 +24,9 @@ body.edit-mode #overlay-container {
   border-radius: 8px;
 }
 
-/* Chroma key mode for OBS recording — bright green background */
+/* Chroma key mode for OBS recording — magenta background (no clash with input colors) */
 body.chroma-key {
-  background: #00FF00;
+  background: #FF00FF;
 }
 
 /* Dynamic flow container — tiles wrap as they appear */

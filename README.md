@@ -101,11 +101,11 @@ KeyVisualizer uses a transparent overlay window, which OBS **Window Capture** ca
 1. **Enable Recording Mode** — Right-click the system tray icon and check **Recording Mode (OBS)**
 2. **Add a Window Capture source** in OBS — Select **"KeyVisualizer [Recording]"** from the window list
 3. **Add a Color Key filter** — Right-click the source in OBS → **Filters** → **+** → **Color Key**
-   - Set **Key Color Type** to **Green**
-   - Adjust **Similarity** and **Smoothness** until the green background is fully removed
+   - Set **Key Color Type** to **Custom Color** and enter **#FF00FF** (magenta)
+   - Adjust **Similarity** and **Smoothness** until the magenta background is fully removed
 4. The overlay will now appear with a transparent background in your recording/stream
 
-You will still see the normal transparent overlay on your screen — the green-backed window runs in the background purely for OBS to capture.
+You will still see the normal transparent overlay on your screen — the magenta-backed window runs in the background purely for OBS to capture.
 
 > **Tip:** OBS **Display Capture** can also capture the transparent overlay directly without recording mode, but it captures your entire screen. Use Recording Mode when you need to capture only the overlay as its own source.
 
