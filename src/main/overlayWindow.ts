@@ -37,11 +37,6 @@ export function createOverlayWindow(): BrowserWindow {
     overlayWindow.setIgnoreMouseEvents(true, { forward: true });
   }
 
-  // Open devtools in dev for debugging (detached so it doesn't affect the overlay)
-  if (process.env.NODE_ENV === 'development' || process.env.DEBUG_OVERLAY) {
-    overlayWindow.webContents.openDevTools({ mode: 'detach' });
-  }
-
   overlayWindow.on('closed', () => {
     overlayWindow = null;
   });
