@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -37,6 +38,32 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libx11-dev libxtst-dev libxt-dev libxrandr-dev dpkg fakeroot
+
+      - name: Generate macOS icon (.icns)
+        if: matrix.platform == 'darwin'
+        run: |
+          mkdir -p icon.iconset
+          # Use sips to resize the PNG to all required sizes
+          for size in 16 32 64 128 256 512; do
+            sips -z $size $size assets/icon.png --out icon.iconset/icon_${size}x${size}.png
+            double=$((size * 2))
+            if [ $double -le 1024 ]; then
+              sips -z $double $double assets/icon.png --out icon.iconset/icon_${size}x${size}@2x.png
+            fi
+          done
+          iconutil -c icns icon.iconset -o assets/icon.icns
+
+      - name: Generate Windows icon (.ico)
+        if: matrix.platform == 'win32'
+        run: |
+          npm install --no-save png-to-ico
+          node -e "
+            const pngToIco = require('png-to-ico');
+            const fs = require('fs');
+            pngToIco(fs.readFileSync('assets/icon.png'))
+              .then(buf => fs.writeFileSync('assets/icon.ico', buf))
+              .then(() => console.log('icon.ico created'));
+          "
 
       - name: Install dependencies
         run: npm ci

@@ -5,16 +5,22 @@ import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { MakerDMG } from '@electron-forge/maker-dmg';
 import { MakerDeb } from '@electron-forge/maker-deb';
 import { MakerZIP } from '@electron-forge/maker-zip';
+import * as fs from 'fs';
 
 import { mainConfig } from './webpack.main.config';
 import { rendererConfig } from './webpack.renderer.config';
+
+// Only reference icon files if they exist (they're generated in CI)
+const hasIco = fs.existsSync('./assets/icon.ico');
+const hasIcns = fs.existsSync('./assets/icon.icns');
+const hasPng = fs.existsSync('./assets/icon.png');
 
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
     name: 'KeyVisualizer',
     executableName: 'keyvisualizer',
-    icon: './assets/icon',
+    ...(hasPng || hasIco || hasIcns ? { icon: './assets/icon' } : {}),
   },
   rebuildConfig: {
     onlyModules: [], // Skip native rebuild; uiohook-napi ships prebuilt binaries
@@ -23,12 +29,12 @@ const config: ForgeConfig = {
     // Windows: produces a Setup.exe installer (double-click to install)
     new MakerSquirrel({
       name: 'KeyVisualizer',
-      setupIcon: './assets/icon.ico',
+      ...(hasIco ? { setupIcon: './assets/icon.ico' } : {}),
     }),
     // macOS: produces a .dmg (double-click to install)
     new MakerDMG({
       name: 'KeyVisualizer',
-      icon: './assets/icon.icns',
+      ...(hasIcns ? { icon: './assets/icon.icns' } : {}),
     }),
     // Linux: .deb package
     new MakerDeb({
@@ -39,6 +45,7 @@ const config: ForgeConfig = {
         homepage: 'https://github.com/8PotatoChip8/KeyVisualizer',
         description: 'Real-time keyboard and mouse input visualizer overlay',
         categories: ['Utility'],
+        ...(hasPng ? { icon: './assets/icon.png' } : {}),
       },
     }),
     // Universal zip fallback for all platforms
