@@ -55,6 +55,15 @@ export interface AppConfig {
   chromaKeyColor: string;      // hex color for recording window background
   overlayTileOpaque: boolean;  // true = fully opaque tile backgrounds in overlay
   captureTileOpaque: boolean;  // true = fully opaque tile backgrounds in capture window
+  clockFormat: '24h' | '12h'; // timestamp display format
+  colorKey: string;            // hex color for keyboard tile active state
+  colorMouse: string;          // hex color for mouse button tile active state
+  colorScroll: string;         // hex color for scroll tile active state
+}
+
+export interface Profile {
+  name: string;
+  config: AppConfig;
 }
 
 export interface ElectronAPI {

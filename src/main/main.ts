@@ -3,8 +3,9 @@ import { createOverlayWindow } from './overlayWindow';
 import { startKeyListener, stopKeyListener } from './keyListener';
 import { createTray, destroyTray } from './trayManager';
 import { getConfig, setConfig } from './store';
-import { setEditMode, confirmEditMode, cancelEditMode, moveToPreset, setOverlayScale, onConfigUpdated } from './overlayWindow';
+import { setEditMode, confirmEditMode, cancelEditMode, moveToPreset, setOverlayScale, onConfigUpdated, applyFullConfig } from './overlayWindow';
 import { openSettingsWindow } from './settingsWindow';
+import { getProfiles, getActiveProfileName, saveProfile, loadProfile, deleteProfile } from './profileStore';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -35,6 +36,23 @@ const createApp = () => {
   ipcMain.on('cancel-edit-mode', () => cancelEditMode());
   ipcMain.on('move-to-preset', (_event, preset: string) => moveToPreset(preset));
   ipcMain.on('set-overlay-scale', (_event, scale: number) => setOverlayScale(scale));
+
+  // Profile IPC handlers
+  ipcMain.handle('get-profiles', () => getProfiles());
+  ipcMain.handle('get-active-profile', () => getActiveProfileName());
+  ipcMain.handle('save-profile', (_event, name: string) => {
+    saveProfile(name);
+  });
+  ipcMain.handle('load-profile', (_event, name: string) => {
+    const config = loadProfile(name);
+    if (config) {
+      applyFullConfig();
+    }
+    return config;
+  });
+  ipcMain.handle('delete-profile', (_event, name: string) => {
+    deleteProfile(name);
+  });
 
   const win = createOverlayWindow();
   startKeyListener(win);

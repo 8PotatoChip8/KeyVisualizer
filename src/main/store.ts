@@ -22,6 +22,10 @@ export function getConfig(): AppConfig {
     chromaKeyColor: store.get('chromaKeyColor'),
     overlayTileOpaque: store.get('overlayTileOpaque'),
     captureTileOpaque: store.get('captureTileOpaque'),
+    clockFormat: store.get('clockFormat'),
+    colorKey: store.get('colorKey'),
+    colorMouse: store.get('colorMouse'),
+    colorScroll: store.get('colorScroll'),
   };
 }
 

@@ -13,7 +13,10 @@ A cross-platform desktop application that displays active key presses and mouse 
 - **Resolution-aware scaling** — Auto-scales based on screen resolution (normalized to 1080p) with adjustable scale slider (50%–200%)
 - **Position presets** — Quickly snap the overlay to Top Left, Top Right, Bottom Left, Bottom Right, Center, or reset to default
 - **OBS recording mode** — Companion capture window for seamless recording in OBS Studio (see [Recording with OBS](#recording-with-obs-studio))
-- **Settings** — Customizable chroma key color, tile transparency options for both overlay and recording windows
+- **Custom tile colors** — Personalize keyboard, mouse, and scroll tile colors to match your brand or aesthetic, with a reset-to-defaults button
+- **Clock format** — Switch between 24-hour and 12-hour (AM/PM) timestamp display
+- **Profiles** — Save and load named profiles that store all settings (position, colors, scale, opacity, etc.) for quick switching
+- **Settings** — Customizable chroma key color, tile colors, clock format, scale, tile transparency, and profile management
 - **System tray** — Minimize to tray, toggle visibility, reposition the overlay
 - **Cross-platform** — Works on Windows, macOS, and Linux
 
@@ -27,9 +30,9 @@ A cross-platform desktop application that displays active key presses and mouse 
 
 Download the latest release for your platform from the [Releases](https://github.com/8PotatoChip8/KeyVisualizer/releases) page:
 
-- **Windows** — `KeyVisualizer-1.0.0.Setup.exe` (installer) or `.zip` (portable)
+- **Windows** — `KeyVisualizer-1.1.0.Setup.exe` (installer) or `.zip` (portable)
 - **macOS** — `KeyVisualizer.dmg`
-- **Linux** — `keyvisualizer_1.0.0_amd64.deb` or `.zip`
+- **Linux** — `keyvisualizer_1.1.0_amd64.deb` or `.zip`
 
 ### From Source
 
@@ -90,19 +93,25 @@ The overlay border becomes a dashed blue outline in edit mode so you can see its
 
 ### Input Types & Colors
 
-| Input | Active Color |
-|-------|-------------|
+| Input | Default Color |
+|-------|--------------|
 | Keyboard keys | Blue glow |
 | Mouse buttons (LMB, RMB, MMB) | Orange glow |
 | Scroll wheel | Green glow |
+
+All input colors can be customized in Settings.
 
 ### Settings
 
 Open **Settings** from the system tray menu to configure:
 
-- **Recording background color** — Choose from presets (Magenta, Green, Blue, Red, Cyan, Black) or pick a custom color. This is the chroma key color used by the recording window.
+- **Clock format** — Toggle between 24-hour and 12-hour (AM/PM) timestamp display
+- **Scale** — Adjust overlay size from 50% to 200% (also available in Edit Position panel, stays synced)
+- **Tile colors** — Pick custom colors for keyboard, mouse, and scroll tiles with a **Reset to Defaults** button
+- **Recording background color** — Choose from presets (Magenta, Green, Blue, Red, Cyan, Black) or pick a custom color for the chroma key recording window
 - **Opaque tiles (Overlay)** — Remove transparency from tile backgrounds in the main overlay
 - **Opaque tiles (Recording)** — Remove transparency from tile backgrounds in the recording window for cleaner chroma keying
+- **Profiles** — Save all current settings as a named profile, load or delete saved profiles for quick switching between configurations
 
 ## Recording with OBS Studio
 

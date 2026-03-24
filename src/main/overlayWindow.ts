@@ -1,4 +1,5 @@
 import { BrowserWindow, screen } from 'electron';
+import { AppConfig } from '../shared/types';
 import { getConfig, setConfig } from './store';
 import { DEFAULT_CONFIG } from '../shared/constants';
 import { addTargetWindow, removeTargetWindow } from './keyListener';
@@ -116,11 +117,16 @@ function applyOverlayZoom(): void {
 export function setOverlayScale(scale: number): void {
   setConfig({ scale });
   applyOverlayZoom();
-  // Update the slider label in the edit panel if open
-  if (editPanelWindow) {
-    editPanelWindow.webContents.executeJavaScript(
-      `document.getElementById('scale-value').textContent='${scale}%'`
-    ).catch(() => {});
+  // Broadcast config change so all windows (settings, edit panel) stay in sync
+  broadcastConfig();
+}
+
+function broadcastConfig(): void {
+  const fullConfig = getConfig();
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) {
+      win.webContents.send('config-changed', fullConfig);
+    }
   }
 }
 
@@ -355,7 +361,7 @@ function closeEditPanel(): void {
   }
 }
 
-export function onConfigUpdated(partial: Partial<import('../shared/types').AppConfig>): void {
+export function onConfigUpdated(partial: Partial<AppConfig>): void {
   // Update capture window background color if it changed
   if (partial.chromaKeyColor && captureWindow && !captureWindow.isDestroyed()) {
     captureWindow.setBackgroundColor(partial.chromaKeyColor);
@@ -366,6 +372,30 @@ export function onConfigUpdated(partial: Partial<import('../shared/types').AppCo
     const config = getConfig();
     overlayWindow.setOpacity(partial.overlayTileOpaque ? 1.0 : config.overlayOpacity);
   }
+}
+
+// Apply all physical side effects when a profile is loaded
+export function applyFullConfig(): void {
+  if (!overlayWindow) return;
+  const config = getConfig();
+
+  // Position
+  overlayWindow.setPosition(config.overlayX, config.overlayY);
+
+  // Opacity
+  overlayWindow.setOpacity(config.overlayTileOpaque ? 1.0 : config.overlayOpacity);
+
+  // Scale/zoom
+  applyOverlayZoom();
+
+  // Capture window
+  if (captureWindow && !captureWindow.isDestroyed()) {
+    captureWindow.setBackgroundColor(config.chromaKeyColor);
+    syncCapturePosition();
+  }
+
+  // Broadcast to all renderers
+  broadcastConfig();
 }
 
 function exitEditMode(save: boolean): void {

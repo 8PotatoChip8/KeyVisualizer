@@ -1,5 +1,12 @@
 import { InputState } from '../../shared/types';
 
+// Module-level clock format, updated from app.ts when config changes
+let clockFormat: '24h' | '12h' = '24h';
+
+export function setClockFormat(format: '24h' | '12h'): void {
+  clockFormat = format;
+}
+
 export class InputTile {
   public element: HTMLElement;
   private labelEl: HTMLElement;
@@ -72,10 +79,18 @@ export class InputTile {
 }
 
 function formatTime(date: Date): string {
-  const h = date.getHours().toString().padStart(2, '0');
   const m = date.getMinutes().toString().padStart(2, '0');
   const s = date.getSeconds().toString().padStart(2, '0');
   const ms = date.getMilliseconds().toString().padStart(3, '0');
+
+  if (clockFormat === '12h') {
+    let h = date.getHours();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${h}:${m}:${s}.${ms} ${ampm}`;
+  }
+
+  const h = date.getHours().toString().padStart(2, '0');
   return `${h}:${m}:${s}.${ms}`;
 }
 

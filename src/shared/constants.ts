@@ -70,4 +70,8 @@ export const DEFAULT_CONFIG: AppConfig = {
   chromaKeyColor: '#FF00FF',
   overlayTileOpaque: false,
   captureTileOpaque: false,
+  clockFormat: '24h',
+  colorKey: '#3C78DC',
+  colorMouse: '#DC6428',
+  colorScroll: '#3CB478',
 };

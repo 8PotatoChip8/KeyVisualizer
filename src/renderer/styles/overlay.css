@@ -61,14 +61,14 @@ body.chroma-key {
   opacity: 1;
 }
 
-/* Active (currently pressed) */
+/* Active (currently pressed) — keyboard */
 .input-tile.active {
-  background: rgba(60, 120, 220, 0.85);
-  border-color: rgba(100, 160, 255, 0.9);
+  background: var(--key-bg);
+  border-color: var(--key-border);
   color: #ffffff;
   transform: scale(0.95);
-  box-shadow: 0 0 12px rgba(80, 140, 255, 0.5),
-              inset 0 0 8px rgba(80, 140, 255, 0.2);
+  box-shadow: 0 0 12px var(--key-glow),
+              inset 0 0 8px var(--key-glow-inner);
 }
 
 /* Fading out after release */
@@ -77,28 +77,26 @@ body.chroma-key {
   transform: scale(1);
 }
 
-/* Mouse button tiles — slightly different color */
-.input-tile.mouse-button.active {
-  background: rgba(220, 100, 60, 0.85);
-  border-color: rgba(255, 140, 80, 0.9);
-  box-shadow: 0 0 12px rgba(255, 120, 60, 0.5),
-              inset 0 0 8px rgba(255, 120, 60, 0.2);
-}
-
+/* Mouse button tiles */
 .input-tile.mouse-button {
-  border-color: rgba(180, 100, 80, 0.5);
+  border-color: var(--mouse-idle-border);
+}
+.input-tile.mouse-button.active {
+  background: var(--mouse-bg);
+  border-color: var(--mouse-border);
+  box-shadow: 0 0 12px var(--mouse-glow),
+              inset 0 0 8px var(--mouse-glow-inner);
 }
 
 /* Scroll tiles */
-.input-tile.scroll.active {
-  background: rgba(60, 180, 120, 0.85);
-  border-color: rgba(80, 220, 150, 0.9);
-  box-shadow: 0 0 12px rgba(60, 200, 130, 0.5),
-              inset 0 0 8px rgba(60, 200, 130, 0.2);
-}
-
 .input-tile.scroll {
-  border-color: rgba(80, 140, 100, 0.5);
+  border-color: var(--scroll-idle-border);
+}
+.input-tile.scroll.active {
+  background: var(--scroll-bg);
+  border-color: var(--scroll-border);
+  box-shadow: 0 0 12px var(--scroll-glow),
+              inset 0 0 8px var(--scroll-glow-inner);
 }
 
 .tile-label {
@@ -132,22 +130,22 @@ body.chroma-key {
   bottom: 0;
   left: 0;
   height: 3px;
-  background: rgba(100, 180, 255, 0.7);
+  background: var(--key-holdbar);
   border-radius: 0 0 4px 4px;
   transition: width 100ms linear;
   width: 0%;
 }
 
 .input-tile.active .hold-bar {
-  background: rgba(160, 210, 255, 0.9);
+  background: var(--key-holdbar-active);
 }
 
 .input-tile.mouse-button .hold-bar {
-  background: rgba(255, 160, 100, 0.7);
+  background: var(--mouse-holdbar);
 }
 
 .input-tile.scroll .hold-bar {
-  background: rgba(100, 220, 160, 0.7);
+  background: var(--scroll-holdbar);
 }
 
 /* Opaque tile mode — removes all transparency from tiles */
@@ -160,38 +158,38 @@ body.opaque-tiles .input-tile.fading {
   opacity: 1;
 }
 body.opaque-tiles .input-tile.active {
-  background: rgb(60, 120, 220);
-  border-color: rgb(100, 160, 255);
-  box-shadow: 0 0 12px rgb(80, 140, 255),
-              inset 0 0 8px rgba(80, 140, 255, 0.4);
+  background: var(--key-bg-opaque);
+  border-color: var(--key-border-opaque);
+  box-shadow: 0 0 12px var(--key-glow-opaque),
+              inset 0 0 8px var(--key-glow-inner);
 }
 body.opaque-tiles .input-tile.mouse-button {
-  border-color: rgb(180, 100, 80);
+  border-color: var(--mouse-idle-border);
 }
 body.opaque-tiles .input-tile.mouse-button.active {
-  background: rgb(220, 100, 60);
-  border-color: rgb(255, 140, 80);
-  box-shadow: 0 0 12px rgb(255, 120, 60),
-              inset 0 0 8px rgba(255, 120, 60, 0.4);
+  background: var(--mouse-bg-opaque);
+  border-color: var(--mouse-border-opaque);
+  box-shadow: 0 0 12px var(--mouse-glow-opaque),
+              inset 0 0 8px var(--mouse-glow-inner);
 }
 body.opaque-tiles .input-tile.scroll {
-  border-color: rgb(80, 140, 100);
+  border-color: var(--scroll-idle-border);
 }
 body.opaque-tiles .input-tile.scroll.active {
-  background: rgb(60, 180, 120);
-  border-color: rgb(80, 220, 150);
-  box-shadow: 0 0 12px rgb(60, 200, 130),
-              inset 0 0 8px rgba(60, 200, 130, 0.4);
+  background: var(--scroll-bg-opaque);
+  border-color: var(--scroll-border-opaque);
+  box-shadow: 0 0 12px var(--scroll-glow-opaque),
+              inset 0 0 8px var(--scroll-glow-inner);
 }
 body.opaque-tiles .hold-bar {
-  background: rgb(100, 180, 255);
+  background: var(--key-holdbar-opaque);
 }
 body.opaque-tiles .input-tile.active .hold-bar {
-  background: rgb(160, 210, 255);
+  background: var(--key-holdbar-active-opaque);
 }
 body.opaque-tiles .input-tile.mouse-button .hold-bar {
-  background: rgb(255, 160, 100);
+  background: var(--mouse-holdbar-opaque);
 }
 body.opaque-tiles .input-tile.scroll .hold-bar {
-  background: rgb(100, 220, 160);
+  background: var(--scroll-holdbar-opaque);
 }
