@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import { getConfig } from './store';
 import { AppConfig } from '../shared/types';
 import { getProfiles, getActiveProfileName } from './profileStore';
@@ -13,7 +13,7 @@ export function openSettingsWindow(): void {
 
   const display = screen.getPrimaryDisplay();
   const panelWidth = 360;
-  const panelHeight = 720;
+  const panelHeight = 800;
   const x = Math.round(display.workArea.x + (display.workArea.width - panelWidth) / 2);
   const y = Math.round(display.workArea.y + (display.workArea.height - panelHeight) / 2);
 
@@ -35,8 +35,9 @@ export function openSettingsWindow(): void {
   const config = getConfig();
   const profiles = getProfiles();
   const activeProfile = getActiveProfileName();
+  const currentVersion = app.getVersion();
   settingsWindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(
-    getSettingsHTML(config, profiles.map(p => p.name), activeProfile)
+    getSettingsHTML(config, profiles.map(p => p.name), activeProfile, currentVersion)
   ));
 
   settingsWindow.on('closed', () => {
@@ -51,7 +52,7 @@ export function closeSettingsWindow(): void {
   }
 }
 
-function getSettingsHTML(config: AppConfig, profileNames: string[], activeProfile: string | null): string {
+function getSettingsHTML(config: AppConfig, profileNames: string[], activeProfile: string | null, currentVersion: string): string {
   const profileOptions = profileNames.map(n =>
     `<option value="${n}"${n === activeProfile ? ' selected' : ''}>${n}</option>`
   ).join('');
@@ -105,8 +106,29 @@ h2{font-size:15px;color:rgba(180,200,255,0.95);margin-bottom:14px;text-align:cen
 .profile-actions{display:flex;gap:4px;margin-top:4px}
 .close-btn{width:100%;height:32px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(80,90,120,0.6);color:rgba(200,200,210,0.9);transition:background 100ms ease;margin-top:10px}
 .close-btn:hover{background:rgba(100,110,140,0.8)}
+.update-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.version-label{font-size:12px;color:rgba(180,200,255,0.9)}
+.update-status{font-size:11px;color:rgba(140,150,180,0.7);margin-top:4px;min-height:16px}
+.update-status.has-update{color:rgba(60,180,100,0.95)}
+.btn-success{background:rgba(60,180,100,0.85);color:#fff}
+.btn-success:hover{background:rgba(70,200,110,0.95)}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(140,150,180,0.3);border-top-color:rgba(180,200,255,0.8);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style></head><body>
 <h2>Settings</h2>
+
+<!-- Updates -->
+<div class="section">
+  <div class="section-label">Updates</div>
+  <div class="version-label">Current version: v${currentVersion}</div>
+  <div class="update-status" id="update-status">Checking for updates...</div>
+  <div class="update-row">
+    <button class="btn btn-primary" id="btn-check-update">Check for Updates</button>
+    <button class="btn btn-success" id="btn-download-update" style="display:none">Download Update</button>
+  </div>
+</div>
+
+<div class="divider"></div>
 
 <!-- Clock Format -->
 <div class="section">
@@ -374,6 +396,52 @@ function updateAllControls(cfg){
   document.getElementById('overlay-opaque').checked=cfg.overlayTileOpaque;
   document.getElementById('capture-opaque').checked=cfg.captureTileOpaque;
 }
+
+// --- Updates ---
+const updateStatus=document.getElementById('update-status');
+const btnCheck=document.getElementById('btn-check-update');
+const btnDownload=document.getElementById('btn-download-update');
+
+async function doCheckUpdate(){
+  updateStatus.innerHTML='<span class="spinner"></span> Checking for updates...';
+  btnCheck.disabled=true;
+  btnDownload.style.display='none';
+  try{
+    const info=await ipcRenderer.invoke('check-for-updates');
+    if(info.hasUpdate){
+      updateStatus.textContent='Update available: v'+info.latestVersion;
+      updateStatus.className='update-status has-update';
+      btnDownload.style.display='';
+    }else{
+      updateStatus.textContent='You are up to date!';
+      updateStatus.className='update-status';
+    }
+  }catch(e){
+    updateStatus.textContent='Could not check for updates.';
+    updateStatus.className='update-status';
+  }
+  btnCheck.disabled=false;
+}
+
+// Check on open using cached info or fetch
+(async()=>{
+  const cached=await ipcRenderer.invoke('get-cached-update-info');
+  if(cached){
+    if(cached.hasUpdate){
+      updateStatus.textContent='Update available: v'+cached.latestVersion;
+      updateStatus.className='update-status has-update';
+      btnDownload.style.display='';
+    }else{
+      updateStatus.textContent='You are up to date!';
+      updateStatus.className='update-status';
+    }
+  }else{
+    doCheckUpdate();
+  }
+})();
+
+btnCheck.addEventListener('click',doCheckUpdate);
+btnDownload.addEventListener('click',()=>ipcRenderer.send('open-update-page'));
 
 document.getElementById('btn-close').addEventListener('click',()=>window.close());
 </script></body></html>`;

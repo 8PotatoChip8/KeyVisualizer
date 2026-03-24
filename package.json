@@ -1,6 +1,6 @@
 {
   "name": "keyvisualizer",
-  "version": "1.1.0",
+  "version": "1.1.5",
   "description": "A cross-platform program for displaying active key presses in real time",
   "main": ".webpack/main",
   "scripts": {

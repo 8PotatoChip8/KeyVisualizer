@@ -6,6 +6,7 @@ import { getConfig, setConfig } from './store';
 import { setEditMode, confirmEditMode, cancelEditMode, moveToPreset, setOverlayScale, onConfigUpdated, applyFullConfig } from './overlayWindow';
 import { openSettingsWindow } from './settingsWindow';
 import { getProfiles, getActiveProfileName, saveProfile, loadProfile, deleteProfile } from './profileStore';
+import { initAutoUpdateCheck, checkForUpdates, getCachedUpdateInfo, openReleasePage } from './updater';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -37,6 +38,11 @@ const createApp = () => {
   ipcMain.on('move-to-preset', (_event, preset: string) => moveToPreset(preset));
   ipcMain.on('set-overlay-scale', (_event, scale: number) => setOverlayScale(scale));
 
+  // Updater IPC handlers
+  ipcMain.handle('check-for-updates', () => checkForUpdates());
+  ipcMain.handle('get-cached-update-info', () => getCachedUpdateInfo());
+  ipcMain.on('open-update-page', () => openReleasePage());
+
   // Profile IPC handlers
   ipcMain.handle('get-profiles', () => getProfiles());
   ipcMain.handle('get-active-profile', () => getActiveProfileName());
@@ -57,6 +63,9 @@ const createApp = () => {
   const win = createOverlayWindow();
   startKeyListener(win);
   createTray();
+
+  // Auto-check for updates after startup
+  initAutoUpdateCheck();
 };
 
 app.whenReady().then(() => {

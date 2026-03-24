@@ -16,7 +16,8 @@ A cross-platform desktop application that displays active key presses and mouse 
 - **Custom tile colors** — Personalize keyboard, mouse, and scroll tile colors to match your brand or aesthetic, with a reset-to-defaults button
 - **Clock format** — Switch between 24-hour and 12-hour (AM/PM) timestamp display
 - **Profiles** — Save and load named profiles that store all settings (position, colors, scale, opacity, etc.) for quick switching
-- **Settings** — Customizable chroma key color, tile colors, clock format, scale, tile transparency, and profile management
+- **Auto-updater** — Notifies you on startup when a new version is available, with a manual check button in Settings
+- **Settings** — Customizable chroma key color, tile colors, clock format, scale, tile transparency, profile management, and update checker
 - **System tray** — Minimize to tray, toggle visibility, reposition the overlay
 - **Cross-platform** — Works on Windows, macOS, and Linux
 
@@ -30,9 +31,9 @@ A cross-platform desktop application that displays active key presses and mouse 
 
 Download the latest release for your platform from the [Releases](https://github.com/8PotatoChip8/KeyVisualizer/releases) page:
 
-- **Windows** — `KeyVisualizer-1.1.0.Setup.exe` (installer) or `.zip` (portable)
+- **Windows** — `KeyVisualizer-1.1.5.Setup.exe` (installer) or `.zip` (portable)
 - **macOS** — `KeyVisualizer.dmg`
-- **Linux** — `keyvisualizer_1.1.0_amd64.deb` or `.zip`
+- **Linux** — `keyvisualizer_1.1.5_amd64.deb` or `.zip`
 
 ### From Source
 
@@ -112,6 +113,7 @@ Open **Settings** from the system tray menu to configure:
 - **Opaque tiles (Overlay)** — Remove transparency from tile backgrounds in the main overlay
 - **Opaque tiles (Recording)** — Remove transparency from tile backgrounds in the recording window for cleaner chroma keying
 - **Profiles** — Save all current settings as a named profile, load or delete saved profiles for quick switching between configurations
+- **Updates** — See your current version, check for updates manually, and download new releases when available. The app also checks automatically on startup and shows a brief notification if an update is available.
 
 ## Recording with OBS Studio
 
